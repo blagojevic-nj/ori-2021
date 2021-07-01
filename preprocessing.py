@@ -1,5 +1,8 @@
 import numpy as np
+import pandas as pd
 import PIL.Image
+import PIL.ImageOps
+import PIL.ImageEnhance
 import os
 import pickle
 
@@ -8,10 +11,12 @@ def load_data(data, subdir_name, image_size):
     pickle_data_filename = os.path.abspath('.') + '\\' + subdir_name + '.p'
     print(pickle_data_filename)
     if os.path.isfile(pickle_data_filename):
-        imgs = pickle.load(open(subdir_name + '.p', "rb"))
+        images_filtered = pickle.load(open(subdir_name + '.p', "rb"))
     else:
         shape = (len(data), image_size, image_size, 3)
         imgs = np.zeros(shape)
+        imgs_flip = np.zeros(shape)
+        imgs_rotate = np.zeros(shape)
         for i in range(shape[0]):
             filename = os.path.abspath('.') + '\\Data\\' + subdir_name + '\\' + data[i]
             image = PIL.Image.open(filename)
@@ -19,10 +24,39 @@ def load_data(data, subdir_name, image_size):
             image = np.array(image)
             image = np.clip(image / 255.0, 0.0, 1.0)
             imgs[i] = image
+        # dodajemo flipovane slike
+        for i in range(shape[0]):
+            filename = os.path.abspath('.') + '\\Data\\' + subdir_name + '\\' + data[i]
+            image = PIL.Image.open(filename)
+            image = PIL.ImageOps.mirror(image)
+            image = image.resize((image_size, image_size))
+            image = np.array(image)
+            image = np.clip(image / 255.0, 0.0, 1.0)
+            imgs_flip[i] = image
+        # dodajemo rotirane slike koje su zatanjene
+        # for i in range(shape[0]):
+        #     filename = os.path.abspath('.') + '\\Data\\' + subdir_name + '\\' + data[i]
+        #     image = PIL.Image.open(filename)
+        #     image = image.rotate(90, PIL.Image.NEAREST, expand=1)
+        #     enhancer = PIL.ImageEnhance.Brightness(image)
+        #     image = enhancer.enhance(0.5)
+        #     image = image.resize((image_size, image_size))
+        #     image = np.array(image)
+        #     image = np.clip(image / 255.0, 0.0, 1.0)
+        #     imgs_rotate[i] = image
 
-        pickle.dump(imgs, open(subdir_name + '.p', "wb"))
+        labels_raw = pd.read_csv("Data/labels.csv", sep=',', header=0, quotechar='"')
 
-    return imgs
+        filtered_labels = top_breeds(labels_raw)
+        images_filtered = imgs[filtered_labels[0], :, :, :]
+        images_flip_filtered = imgs_flip[filtered_labels[0], :, :, :]
+        # images_rotate_filtered = imgs_rotate[filtered_labels[0], :, :, :]
+
+        images_filtered = np.concatenate((images_filtered, images_flip_filtered))
+
+        pickle.dump(images_filtered, open(subdir_name + '.p', "wb"))
+
+    return images_filtered
 
 
 def top_breeds(lbls, size=10):
