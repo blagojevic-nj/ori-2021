@@ -16,41 +16,25 @@ def load_data(data, subdir_name, image_size):
         shape = (len(data), image_size, image_size, 3)
         imgs = np.zeros(shape)
         imgs_flip = np.zeros(shape)
-        imgs_rotate = np.zeros(shape)
         for i in range(shape[0]):
             filename = os.path.abspath('.') + '\\Data\\' + subdir_name + '\\' + data[i]
             image = PIL.Image.open(filename)
-            image = image.resize((image_size, image_size))
-            image = np.array(image)
-            image = np.clip(image / 255.0, 0.0, 1.0)
-            imgs[i] = image
-        # dodajemo flipovane slike
-        for i in range(shape[0]):
-            filename = os.path.abspath('.') + '\\Data\\' + subdir_name + '\\' + data[i]
-            image = PIL.Image.open(filename)
-            image = PIL.ImageOps.mirror(image)
-            image = image.resize((image_size, image_size))
-            image = np.array(image)
-            image = np.clip(image / 255.0, 0.0, 1.0)
-            imgs_flip[i] = image
-        # dodajemo rotirane slike koje su zatanjene
-        # for i in range(shape[0]):
-        #     filename = os.path.abspath('.') + '\\Data\\' + subdir_name + '\\' + data[i]
-        #     image = PIL.Image.open(filename)
-        #     image = image.rotate(90, PIL.Image.NEAREST, expand=1)
-        #     enhancer = PIL.ImageEnhance.Brightness(image)
-        #     image = enhancer.enhance(0.5)
-        #     image = image.resize((image_size, image_size))
-        #     image = np.array(image)
-        #     image = np.clip(image / 255.0, 0.0, 1.0)
-        #     imgs_rotate[i] = image
+            image1 = image.resize((image_size, image_size))
+            image1 = np.array(image1)
+            image1 = np.clip(image1 / 255.0, 0.0, 1.0)
+            imgs[i] = image1
+
+            image2 = PIL.ImageOps.mirror(image)
+            image2 = image2.resize((image_size, image_size))
+            image2 = np.array(image2)
+            image2 = np.clip(image2 / 255.0, 0.0, 1.0)
+            imgs_flip[i] = image2
 
         labels_raw = pd.read_csv("Data/labels.csv", sep=',', header=0, quotechar='"')
 
         filtered_labels = top_breeds(labels_raw)
         images_filtered = imgs[filtered_labels[0], :, :, :]
         images_flip_filtered = imgs_flip[filtered_labels[0], :, :, :]
-        # images_rotate_filtered = imgs_rotate[filtered_labels[0], :, :, :]
 
         images_filtered = np.concatenate((images_filtered, images_flip_filtered))
 
@@ -71,7 +55,6 @@ def top_breeds(lbls, size=10):
 
     main_lbls_list.remove('')
     main_lbls_list.pop(0)
-
     lbls_numpy = lbls['breed'].to_numpy()
     lbls_numpy = lbls_numpy.reshape(lbls_numpy.shape[0], 1)
     filtered_lbls = np.where(lbls_numpy == main_lbls_list)
