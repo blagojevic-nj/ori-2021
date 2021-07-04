@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     model.compile(loss=keras.losses.categorical_crossentropy, optimizer='adam', metrics=['accuracy'])
 
-    es_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+    es_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=2)
 
     history = model.fit(x_train, y_train, batch_size=32, epochs=20, verbose=1, callbacks=[es_callback],
                         validation_data=(x_validation, y_validation))

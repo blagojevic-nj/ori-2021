@@ -8,8 +8,8 @@ import pickle
 
 
 def load_data(data, subdir_name, image_size):
+    print("Loading data...")
     pickle_data_filename = os.path.abspath('.') + '\\' + subdir_name + '.p'
-    print(pickle_data_filename)
     if os.path.isfile(pickle_data_filename):
         images_filtered = pickle.load(open(subdir_name + '.p', "rb"))
     else:
